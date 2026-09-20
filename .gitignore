@@ -6,6 +6,10 @@ output/*
 inbox/*
 !inbox/.gitkeep
 inbox/*.done
+local/inbox/*
+!local/inbox/.gitkeep
+local/out/*
+!local/out/.gitkeep
 .DS_Store
 vendor/
 *.log
