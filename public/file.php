@@ -7,7 +7,7 @@ require $root . '/src/Config.php';
 $config = new Config($root);
 
 $name = basename((string) ($_GET['f'] ?? ''));
-if ($name === '' || !preg_match('/^[a-f0-9]+-(enhanced|orig)\.jpg$|^[a-f0-9]+-video\.mp4$/', $name)) {
+if ($name === '' || !preg_match('/^[A-Za-z0-9._-]+-(enhanced|orig)\.jpg$|^[A-Za-z0-9._-]+-video\.mp4$/', $name)) {
     http_response_code(400);
     exit('Bad file');
 }
