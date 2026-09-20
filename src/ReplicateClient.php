@@ -6,8 +6,22 @@ final class ReplicateClient
 {
     private const API = 'https://api.replicate.com/v1/predictions';
 
+    /** @var array<string,array{label:string,model:string,max:int}> */
+    public const VIDEO_ENGINES = [
+        'kling3' => ['label' => 'Kling 3.0 (15s, audio)', 'model' => 'kwaivgi/kling-v3-video', 'max' => 15],
+        'pvideo' => ['label' => 'P-Video 2 Pro (15s)', 'model' => 'prunaai/p-video-2-pro', 'max' => 15],
+        'seedance' => ['label' => 'Seedance 2.0 (15s, audio)', 'model' => 'bytedance/seedance-2.0', 'max' => 15],
+        'hailuo' => ['label' => 'MiniMax Hailuo 02', 'model' => 'minimax/hailuo-02', 'max' => 10],
+        'kling21' => ['label' => 'Kling 2.1 Master (10s)', 'model' => 'kwaivgi/kling-v2.1-master', 'max' => 10],
+    ];
+
     public function __construct(private readonly string $token)
     {
+    }
+
+    public static function videoEngine(string $id): string
+    {
+        return isset(self::VIDEO_ENGINES[$id]) ? $id : 'kling3';
     }
 
     public function upscale(string $imagePath, string $outputPath, int $scale, string $model): string
@@ -41,27 +55,55 @@ final class ReplicateClient
         return $this->awaitFile($created, $outputPath, 240);
     }
 
-    public function imageToVideo(string $imagePath, string $outputPath, string $prompt, int $duration = 15): string
+    public function imageToVideo(string $imagePath, string $outputPath, string $prompt, int $duration = 15, string $engine = 'kling3'): string
     {
+        $engine = self::videoEngine($engine);
+        $meta = self::VIDEO_ENGINES[$engine];
         $dataUri = $this->toDataUri($imagePath);
-        $duration = max(5, min(15, $duration));
+        $duration = max(5, min($meta['max'], $duration));
         $prompt = trim($prompt);
         if ($prompt === '') {
             $prompt = 'Subtle natural motion, cinematic camera, ultra realistic, keep the subject and scene from the reference image.';
         }
 
+        $input = match ($engine) {
+            'pvideo' => [
+                'prompt' => $prompt,
+                'image' => $dataUri,
+                'duration' => $duration,
+                'mode' => 'quality',
+                'resolution' => '768p',
+            ],
+            'seedance' => [
+                'prompt' => $prompt,
+                'duration' => $duration,
+                'resolution' => '720p',
+                'generate_audio' => true,
+                'reference_images' => [$dataUri],
+            ],
+            'hailuo' => [
+                'prompt' => $prompt,
+                'first_frame_image' => $dataUri,
+                'duration' => min(10, $duration),
+            ],
+            'kling21' => [
+                'prompt' => $prompt,
+                'start_image' => $dataUri,
+                'duration' => $duration >= 10 ? 10 : 5,
+            ],
+            default => [
+                'prompt' => $prompt,
+                'start_image' => $dataUri,
+                'duration' => $duration,
+                'mode' => 'pro',
+                'generate_audio' => true,
+            ],
+        };
+
         $created = $this->request(
             'POST',
-            'https://api.replicate.com/v1/models/kwaivgi/kling-v3-video/predictions',
-            [
-                'input' => [
-                    'prompt' => $prompt,
-                    'start_image' => $dataUri,
-                    'duration' => $duration,
-                    'mode' => 'pro',
-                    'generate_audio' => true,
-                ],
-            ]
+            'https://api.replicate.com/v1/models/' . $meta['model'] . '/predictions',
+            ['input' => $input]
         );
 
         return $this->awaitFile($created, $outputPath, 600);
