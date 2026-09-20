@@ -3,6 +3,9 @@ uploads/*
 !uploads/.gitkeep
 output/*
 !output/.gitkeep
+inbox/*
+!inbox/.gitkeep
+inbox/*.done
 .DS_Store
 vendor/
 *.log
