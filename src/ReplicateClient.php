@@ -6,13 +6,17 @@ final class ReplicateClient
 {
     private const API = 'https://api.replicate.com/v1/predictions';
 
-    /** @var array<string,array{label:string,model:string,max:int}> */
+    /** @var array<string,array{label:string,model:string,max:int,nsfw:bool}> */
     public const VIDEO_ENGINES = [
-        'kling3' => ['label' => 'Kling 3.0 (15s, audio)', 'model' => 'kwaivgi/kling-v3-video', 'max' => 15],
-        'pvideo' => ['label' => 'P-Video 2 Pro (15s)', 'model' => 'prunaai/p-video-2-pro', 'max' => 15],
-        'seedance' => ['label' => 'Seedance 2.0 (15s, audio)', 'model' => 'bytedance/seedance-2.0', 'max' => 15],
-        'hailuo' => ['label' => 'MiniMax Hailuo 02', 'model' => 'minimax/hailuo-02', 'max' => 10],
-        'kling21' => ['label' => 'Kling 2.1 Master (10s)', 'model' => 'kwaivgi/kling-v2.1-master', 'max' => 10],
+        'wan22' => ['label' => 'Wan 2.2 Fast — uncensored I2V', 'model' => 'wan-video/wan-2.2-i2v-fast', 'max' => 5, 'nsfw' => true],
+        'wan21' => ['label' => 'Wan 2.1 720p — uncensored I2V', 'model' => 'wavespeedai/wan-2.1-i2v-720p', 'max' => 5, 'nsfw' => true],
+        'wan27' => ['label' => 'Wan 2.7 I2V — open, low filter', 'model' => 'wan-video/wan-2.7-i2v', 'max' => 15, 'nsfw' => true],
+        'wanunc' => ['label' => 'Wan 2.1 Uncensored LoRA', 'model' => 'uncensored-com/wan2.1-uncensored-video-lora', 'max' => 5, 'nsfw' => true],
+        'kling3' => ['label' => 'Kling 3.0 (filtered)', 'model' => 'kwaivgi/kling-v3-video', 'max' => 15, 'nsfw' => false],
+        'pvideo' => ['label' => 'P-Video 2 Pro (filtered)', 'model' => 'prunaai/p-video-2-pro', 'max' => 15, 'nsfw' => false],
+        'seedance' => ['label' => 'Seedance 2.0 (filtered)', 'model' => 'bytedance/seedance-2.0', 'max' => 15, 'nsfw' => false],
+        'hailuo' => ['label' => 'Hailuo 02 (filtered)', 'model' => 'minimax/hailuo-02', 'max' => 10, 'nsfw' => false],
+        'kling21' => ['label' => 'Kling 2.1 Master (filtered)', 'model' => 'kwaivgi/kling-v2.1-master', 'max' => 10, 'nsfw' => false],
     ];
 
     public function __construct(private readonly string $token)
@@ -21,7 +25,7 @@ final class ReplicateClient
 
     public static function videoEngine(string $id): string
     {
-        return isset(self::VIDEO_ENGINES[$id]) ? $id : 'kling3';
+        return isset(self::VIDEO_ENGINES[$id]) ? $id : 'wan22';
     }
 
     public function upscale(string $imagePath, string $outputPath, int $scale, string $model): string
@@ -55,18 +59,40 @@ final class ReplicateClient
         return $this->awaitFile($created, $outputPath, 240);
     }
 
-    public function imageToVideo(string $imagePath, string $outputPath, string $prompt, int $duration = 15, string $engine = 'kling3'): string
+    public function imageToVideo(string $imagePath, string $outputPath, string $prompt, int $duration = 15, string $engine = 'wan22'): string
     {
         $engine = self::videoEngine($engine);
         $meta = self::VIDEO_ENGINES[$engine];
         $dataUri = $this->toDataUri($imagePath);
-        $duration = max(5, min($meta['max'], $duration));
+        $duration = max(2, min($meta['max'], $duration));
         $prompt = trim($prompt);
         if ($prompt === '') {
-            $prompt = 'Subtle natural motion, cinematic camera, ultra realistic, keep the subject and scene from the reference image.';
+            $prompt = 'Natural body motion from the reference photo, realistic skin, keep identity and pose, cinematic light.';
         }
 
         $input = match ($engine) {
+            'wan22' => [
+                'image' => $dataUri,
+                'prompt' => $prompt,
+                'go_fast' => false,
+                'disable_safety_checker' => true,
+            ],
+            'wan21' => [
+                'image' => $dataUri,
+                'prompt' => $prompt,
+                'disable_safety_checker' => true,
+            ],
+            'wan27' => [
+                'image' => $dataUri,
+                'prompt' => $prompt,
+                'duration' => $duration,
+                'disable_safety_checker' => true,
+            ],
+            'wanunc' => [
+                'image' => $dataUri,
+                'prompt' => 'unai, ' . $prompt,
+                'disable_safety_checker' => true,
+            ],
             'pvideo' => [
                 'prompt' => $prompt,
                 'image' => $dataUri,
