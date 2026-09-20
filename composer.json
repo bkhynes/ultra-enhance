@@ -1,0 +1,13 @@
+{
+  "name": "bkhynes/ultra-enhance",
+  "description": "PHP image upscaler and ultra-realistic enhancer for Mac and iPhone",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "suggest": {
+    "ext-imagick": "Better local enhancement than GD"
+  }
+}

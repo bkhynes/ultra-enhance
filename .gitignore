@@ -1,0 +1,8 @@
+.env
+uploads/*
+!uploads/.gitkeep
+output/*
+!output/.gitkeep
+.DS_Store
+vendor/
+*.log
