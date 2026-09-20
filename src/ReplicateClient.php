@@ -10,9 +10,6 @@ final class ReplicateClient
     {
     }
 
-    /**
-     * @return string local path of downloaded enhanced image
-     */
     public function upscale(string $imagePath, string $outputPath, int $scale, string $model): string
     {
         $dataUri = $this->toDataUri($imagePath);
@@ -25,7 +22,6 @@ final class ReplicateClient
                 'face_enhance' => true,
             ];
         } else {
-            // philz1337x/clarity-upscaler — strong on skin, hair, photo realism
             $version = 'dfad41775bf40bd70aa79aacb1ea9ea19084dba5d1215a528805f323fa6c94fb';
             $input = [
                 'image' => $dataUri,
@@ -42,40 +38,87 @@ final class ReplicateClient
             'version' => $version,
             'input' => $input,
         ]);
+        return $this->awaitFile($created, $outputPath, 240);
+    }
 
+    public function imageToVideo(string $imagePath, string $outputPath, string $prompt, int $duration = 15): string
+    {
+        $dataUri = $this->toDataUri($imagePath);
+        $duration = max(5, min(15, $duration));
+        $prompt = trim($prompt);
+        if ($prompt === '') {
+            $prompt = 'Subtle natural motion, cinematic camera, ultra realistic, keep the subject and scene from the reference image.';
+        }
+
+        $created = $this->request(
+            'POST',
+            'https://api.replicate.com/v1/models/kwaivgi/kling-v3-video/predictions',
+            [
+                'input' => [
+                    'prompt' => $prompt,
+                    'start_image' => $dataUri,
+                    'duration' => $duration,
+                    'mode' => 'pro',
+                    'generate_audio' => true,
+                ],
+            ]
+        );
+
+        return $this->awaitFile($created, $outputPath, 600);
+    }
+
+    public function toDataUri(string $path): string
+    {
+        $mime = mime_content_type($path) ?: 'image/jpeg';
+        return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+    }
+
+    /** @param array<string,mixed> $created */
+    private function awaitFile(array $created, string $outputPath, int $timeoutSec): string
+    {
         $url = $created['urls']['get'] ?? null;
         if (!$url) {
             throw new RuntimeException('Replicate did not return a prediction URL');
         }
 
-        $deadline = time() + 240;
+        $deadline = time() + $timeoutSec;
         $prediction = $created;
         while (time() < $deadline) {
             $status = $prediction['status'] ?? '';
             if ($status === 'succeeded') {
-                $out = $prediction['output'] ?? null;
-                $fileUrl = is_array($out) ? ($out[0] ?? null) : $out;
-                if (!is_string($fileUrl) || $fileUrl === '') {
+                $fileUrl = $this->firstUrl($prediction['output'] ?? null);
+                if ($fileUrl === null) {
                     throw new RuntimeException('Replicate succeeded but returned no file');
                 }
                 $this->download($fileUrl, $outputPath);
                 return $outputPath;
             }
             if (in_array($status, ['failed', 'canceled'], true)) {
-                $err = $prediction['error'] ?? $status;
-                throw new RuntimeException('Replicate failed: ' . $err);
+                throw new RuntimeException('Replicate failed: ' . ($prediction['error'] ?? $status));
             }
-            usleep(1500000);
+            usleep(2000000);
             $prediction = $this->request('GET', $url);
         }
 
-        throw new RuntimeException('Replicate timed out after 4 minutes');
+        throw new RuntimeException('Replicate timed out after ' . $timeoutSec . 's');
     }
 
-    private function toDataUri(string $path): string
+    private function firstUrl(mixed $out): ?string
     {
-        $mime = mime_content_type($path) ?: 'image/jpeg';
-        return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+        if (is_string($out) && str_starts_with($out, 'http')) {
+            return $out;
+        }
+        if (is_array($out)) {
+            foreach ($out as $item) {
+                if (is_string($item) && str_starts_with($item, 'http')) {
+                    return $item;
+                }
+                if (is_array($item) && isset($item['url']) && is_string($item['url'])) {
+                    return $item['url'];
+                }
+            }
+        }
+        return null;
     }
 
     /** @return array<string,mixed> */
@@ -123,7 +166,7 @@ final class ReplicateClient
     {
         $data = file_get_contents($url);
         if ($data === false || $data === '') {
-            throw new RuntimeException('Could not download enhanced image');
+            throw new RuntimeException('Could not download result');
         }
         if (file_put_contents($dest, $data) === false) {
             throw new RuntimeException('Could not write output file');
