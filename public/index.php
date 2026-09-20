@@ -13,6 +13,7 @@ $config = new Config($root);
 $result = null;
 $enhancer = new Enhancer($config);
 $job = (string) ($_POST['job'] ?? 'enhance');
+$videoEngine = ReplicateClient::videoEngine((string) ($_POST['video_engine'] ?? 'kling3'));
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if ($config->appToken !== '') {
@@ -25,7 +26,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $result = (new VideoGenerator($config))->fromUpload(
             $_FILES['image'] ?? [],
             (string) ($_POST['prompt'] ?? ''),
-            (int) ($_POST['duration'] ?? 15)
+            (int) ($_POST['duration'] ?? 15),
+            $videoEngine
         );
     } elseif ($result === null) {
         $model = $enhancer->normaliseModel((string) ($_POST['model'] ?? $config->model));
@@ -84,6 +86,13 @@ $engineReady = $config->hasReplicate() ? 'Replicate AI ready' : (extension_loade
       </div>
 
       <div id="videoFields" hidden>
+        <label>Engine
+          <select name="video_engine" id="videoEngine">
+            <?php foreach (ReplicateClient::VIDEO_ENGINES as $id => $meta): ?>
+              <option value="<?= htmlspecialchars($id) ?>" <?= $videoEngine === $id ? 'selected' : '' ?>><?= htmlspecialchars($meta['label']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
         <label>Motion prompt
           <textarea name="prompt" rows="3" placeholder="Slow look-back, wet hair swinging, soft light, handheld camera, ultra realistic..."><?= htmlspecialchars((string) ($_POST['prompt'] ?? '')) ?></textarea>
         </label>
@@ -94,6 +103,7 @@ $engineReady = $config->hasReplicate() ? 'Replicate AI ready' : (extension_loade
             <option value="15" selected>15s</option>
           </select>
         </label>
+        <p class="hint">Hailuo and Kling 2.1 cap at 10s. Longer picks get clamped.</p>
       </div>
 
       <label class="drop" id="drop">
@@ -133,7 +143,7 @@ $engineReady = $config->hasReplicate() ? 'Replicate AI ready' : (extension_loade
     <?php endif; ?>
 
     <footer>
-      <p>Video uses Kling 3.0 on Replicate, same idea as Imagine: still in, 15s clip out. Needs <code>REPLICATE_API_TOKEN</code>.</p>
+      <p>Video engines run on Replicate. Same key. Pick the look, keep the Mac awake.</p>
     </footer>
   </main>
   <script src="/assets/app.js"></script>
