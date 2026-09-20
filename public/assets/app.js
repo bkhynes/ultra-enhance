@@ -7,13 +7,26 @@ const slider = document.getElementById('slider');
 const compare = document.getElementById('compare');
 const enhanceFields = document.getElementById('enhanceFields');
 const videoFields = document.getElementById('videoFields');
+const localFields = document.getElementById('localFields');
+
+function currentJob() {
+  const el = document.querySelector('input[name="job"]:checked');
+  return el ? el.value : 'enhance';
+}
 
 function syncJob() {
-  const video = document.querySelector('input[name="job"][value="video"]');
-  const isVideo = !!(video && video.checked);
-  if (enhanceFields) enhanceFields.hidden = isVideo;
-  if (videoFields) videoFields.hidden = !isVideo;
-  if (go) go.textContent = isVideo ? 'Make 15s video' : 'Enhance';
+  const job = currentJob();
+  if (enhanceFields) enhanceFields.hidden = job !== 'enhance';
+  if (videoFields) videoFields.hidden = job !== 'video';
+  if (localFields) localFields.hidden = job !== 'local';
+  document.querySelectorAll('#enhanceFields select, #videoFields select, #videoFields textarea, #localFields textarea').forEach((el) => {
+    el.disabled = el.closest('#enhanceFields') ? job !== 'enhance'
+      : el.closest('#videoFields') ? job !== 'video'
+      : job !== 'local';
+  });
+  if (go) {
+    go.textContent = job === 'video' ? 'Make video' : job === 'local' ? 'Queue locally' : 'Enhance';
+  }
 }
 document.querySelectorAll('input[name="job"]').forEach((el) => el.addEventListener('change', syncJob));
 syncJob();
@@ -21,9 +34,7 @@ syncJob();
 if (image) {
   image.addEventListener('change', () => {
     const f = image.files && image.files[0];
-    if (f) {
-      dropLabel.innerHTML = f.name + '<br><small>' + Math.round(f.size / 1024) + ' KB</small>';
-    }
+    if (f) dropLabel.innerHTML = f.name + '<br><small>' + Math.round(f.size / 1024) + ' KB</small>';
   });
 }
 

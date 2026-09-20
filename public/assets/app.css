@@ -21,12 +21,14 @@ header h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -0.03em; }
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 18px;
+  margin-bottom: 14px;
 }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.tabs3 { grid-template-columns: 1fr 1fr 1fr; }
 .tab {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 10px; border-radius: 12px; border: 1px solid var(--line);
-  background: #100e0c; color: var(--ink); margin: 0; font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 6px; border-radius: 12px; border: 1px solid var(--line);
+  background: #100e0c; color: var(--ink); margin: 0; font-size: 0.85rem;
 }
 .tab:has(input:checked) { border-color: var(--accent); color: var(--accent); }
 .row { display: grid; grid-template-columns: 1fr 88px; gap: 10px; }
@@ -39,7 +41,7 @@ input[type="password"], select, textarea {
 textarea { resize: vertical; }
 .drop {
   display: flex; align-items: center; justify-content: center; text-align: center;
-  min-height: 150px; border: 1px dashed #3a322b; border-radius: 16px;
+  min-height: 140px; border: 1px dashed #3a322b; border-radius: 16px;
   background: #100e0c; cursor: pointer; color: var(--ink);
 }
 .drop input { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -64,10 +66,10 @@ button:disabled { opacity: 0.55; }
   border-right: 2px solid #fff;
 }
 .compare input[type="range"] {
-  position: absolute; left: 0; right: 0; bottom: 10px; width: 90%; margin: 0 5%;
-  z-index: 2;
+  position: absolute; left: 0; right: 0; bottom: 10px; width: 90%; margin: 0 5%; z-index: 2;
 }
-.ok { color: var(--ok); margin: 0; }
+.hint { color: var(--muted); font-size: 0.8rem; line-height: 1.4; margin: 0 0 10px; }
+.ok { color: var(--ok); margin: 0 0 8px; }
 .err { color: var(--err); margin: 0; }
-footer { color: var(--muted); font-size: 0.85rem; line-height: 1.45; margin-top: 22px; }
+footer { color: var(--muted); font-size: 0.85rem; line-height: 1.45; margin-top: 12px; }
 code { color: var(--ink); }
