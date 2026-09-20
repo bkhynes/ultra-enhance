@@ -11,7 +11,7 @@ final class VideoGenerator
     /**
      * @return array{ok:bool,engine:string,file:?string,orig:?string,error:?string,url:?string,orig_url:?string,kind:string}
      */
-    public function fromUpload(array $file, string $prompt, int $duration = 15): array
+    public function fromUpload(array $file, string $prompt, int $duration = 15, string $engine = 'kling3'): array
     {
         if (!$this->config->hasReplicate()) {
             return $this->fail('Video needs a REPLICATE_API_TOKEN in .env');
@@ -31,6 +31,7 @@ final class VideoGenerator
             return $this->fail('Use a JPEG, PNG or WebP as the reference frame');
         }
 
+        $engine = ReplicateClient::videoEngine($engine);
         $id = bin2hex(random_bytes(8));
         $in = $this->config->uploadDir . '/' . $id . '.' . $allowed[$mime];
         $orig = $this->config->outputDir . '/' . $id . '-orig.jpg';
@@ -51,7 +52,7 @@ final class VideoGenerator
 
         try {
             set_time_limit(0);
-            (new ReplicateClient($this->config->replicateToken))->imageToVideo($in, $out, $prompt, $duration);
+            (new ReplicateClient($this->config->replicateToken))->imageToVideo($in, $out, $prompt, $duration, $engine);
         } catch (Throwable $e) {
             return $this->fail($e->getMessage());
         }
@@ -63,7 +64,7 @@ final class VideoGenerator
         return [
             'ok' => true,
             'kind' => 'video',
-            'engine' => 'replicate:kling-v3',
+            'engine' => 'replicate:' . $engine,
             'file' => basename($out),
             'orig' => basename($orig),
             'url' => '/file.php?f=' . rawurlencode(basename($out)),
