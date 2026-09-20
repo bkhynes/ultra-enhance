@@ -13,7 +13,7 @@ $config = new Config($root);
 $result = null;
 $enhancer = new Enhancer($config);
 $job = (string) ($_POST['job'] ?? 'enhance');
-$videoEngine = ReplicateClient::videoEngine((string) ($_POST['video_engine'] ?? 'kling3'));
+$videoEngine = ReplicateClient::videoEngine((string) ($_POST['video_engine'] ?? 'wan22'));
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if ($config->appToken !== '') {
@@ -94,7 +94,7 @@ $engineReady = $config->hasReplicate() ? 'Replicate AI ready' : (extension_loade
           </select>
         </label>
         <label>Motion prompt
-          <textarea name="prompt" rows="3" placeholder="Slow look-back, wet hair swinging, soft light, handheld camera, ultra realistic..."><?= htmlspecialchars((string) ($_POST['prompt'] ?? '')) ?></textarea>
+          <textarea name="prompt" rows="3" placeholder="Slow look-back, wet skin catching light, natural breath, handheld, ultra realistic..."><?= htmlspecialchars((string) ($_POST['prompt'] ?? '')) ?></textarea>
         </label>
         <label>Length
           <select name="duration">
@@ -103,7 +103,7 @@ $engineReady = $config->hasReplicate() ? 'Replicate AI ready' : (extension_loade
             <option value="15" selected>15s</option>
           </select>
         </label>
-        <p class="hint">Hailuo and Kling 2.1 cap at 10s. Longer picks get clamped.</p>
+        <p class="hint">Nudes: use Wan engines (safety checker off). Kling / Seedance / Hailuo will usually refuse. Wan 2.2/2.1 are ~5s; Wan 2.7 can go 15s. Replicate may still bounce some uploads at the platform gate — if that happens the only real uncensored path is local ComfyUI.</p>
       </div>
 
       <label class="drop" id="drop">
@@ -143,7 +143,7 @@ $engineReady = $config->hasReplicate() ? 'Replicate AI ready' : (extension_loade
     <?php endif; ?>
 
     <footer>
-      <p>Video engines run on Replicate. Same key. Pick the look, keep the Mac awake.</p>
+      <p>Wan engines send <code>disable_safety_checker=true</code>. Your stills stay on the Mac plus Replicate for the job. Adult only.</p>
     </footer>
   </main>
   <script src="/assets/app.js"></script>
