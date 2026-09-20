@@ -22,15 +22,16 @@ header h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -0.03em; }
   border-radius: 18px;
   padding: 18px;
 }
+.row { display: grid; grid-template-columns: 1fr 88px; gap: 10px; }
 label { display: block; margin-bottom: 12px; font-size: 0.9rem; color: var(--muted); }
-input[type="password"] {
+input[type="password"], select {
   width: 100%; margin-top: 6px; padding: 12px;
   border-radius: 12px; border: 1px solid var(--line);
   background: #0e0d0c; color: var(--ink); font-size: 16px;
 }
 .drop {
   display: flex; align-items: center; justify-content: center; text-align: center;
-  min-height: 160px; border: 1px dashed #3a322b; border-radius: 16px;
+  min-height: 150px; border: 1px dashed #3a322b; border-radius: 16px;
   background: #100e0c; cursor: pointer; color: var(--ink);
 }
 .drop input { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -43,7 +44,23 @@ button, .btn {
 }
 button:disabled { opacity: 0.55; }
 .status { color: var(--muted); margin-top: 14px; }
-.result img { width: 100%; border-radius: 12px; margin: 10px 0; display: block; }
+.result img, .compare { width: 100%; border-radius: 12px; margin: 10px 0; display: block; }
+.compare {
+  position: relative; overflow: hidden; line-height: 0;
+}
+.compare .before { width: 100%; display: block; }
+.compare::after {
+  content: "";
+  position: absolute; inset: 0 auto 0 0;
+  width: var(--pos, 50%);
+  background: var(--after) left center / auto 100% no-repeat;
+  border-right: 2px solid #fff;
+}
+.compare input[type="range"] {
+  position: absolute; left: 0; right: 0; bottom: 10px; width: 90%; margin: 0 5%;
+  z-index: 2;
+}
+.hint { color: var(--muted); font-size: 0.8rem; margin: 0 0 8px; }
 .ok { color: var(--ok); margin: 0; }
 .err { color: var(--err); margin: 0; }
 footer { color: var(--muted); font-size: 0.85rem; line-height: 1.45; margin-top: 22px; }

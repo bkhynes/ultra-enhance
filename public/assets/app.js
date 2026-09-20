@@ -3,6 +3,8 @@ const statusEl = document.getElementById('status');
 const go = document.getElementById('go');
 const image = document.getElementById('image');
 const dropLabel = document.getElementById('dropLabel');
+const slider = document.getElementById('slider');
+const compare = document.getElementById('compare');
 
 if (image) {
   image.addEventListener('change', () => {
@@ -21,4 +23,10 @@ if (form) {
       go.textContent = 'Enhancing…';
     }
   });
+}
+
+if (slider && compare) {
+  const apply = () => compare.style.setProperty('--pos', slider.value + '%');
+  slider.addEventListener('input', apply);
+  apply();
 }
