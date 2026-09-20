@@ -1,56 +1,31 @@
 # Ultra Enhance
 
-PHP web app that upscales photos toward an ultra-realistic look.
+PHP app for ultra-real stills and Imagine-style 15s clips from a reference photo.
 
-- Mac runs PHP.
-- iPhone uses Safari on the same Wi-Fi.
-- Clarity or Real-ESRGAN via Replicate.
-- Before/after slider after each run.
-- Folder batch for overnight jobs.
+- Mac runs PHP. iPhone uses Safari on the same Wi-Fi.
+- Enhance: Clarity or Real-ESRGAN.
+- Video: Kling 3.0 image-to-video on Replicate, 5 / 10 / 15 seconds + audio.
 
-## Quick start (Mac)
-
-```bash
-git clone https://github.com/bkhynes/ultra-enhance.git
-cd ultra-enhance
-chmod +x start.sh
-./start.sh
-```
-
-- Mac: http://127.0.0.1:8080
-- iPhone: http://YOUR-LAN-IP:8080 (`ipconfig getifaddr en0`)
-
-Pull latest after this update:
+## Quick start
 
 ```bash
 cd ultra-enhance && git pull
+./start.sh
 ```
 
-## Replicate (the real quality)
+Add to `.env`:
 
 ```
 REPLICATE_API_TOKEN=r8_xxxxxxxx
-UPSCALE_SCALE=2
-UPSCALE_MODEL=clarity
 ```
 
-Models in the UI:
+Video will not run without that token.
 
-- **Clarity** — skin, hair, photo realism
-- **Real-ESRGAN** — cleaner hard upscale + face enhance
+## 15s video
 
-## Overnight batch
+1. Switch the tab to **15s video**.
+2. Upload a still (first frame).
+3. Write a motion prompt like Imagine: camera, body movement, light.
+4. Pick 5 / 10 / 15s. Wait. Download the MP4.
 
-Drop JPEGs into `inbox/` then:
-
-```bash
-php bin/batch.php --watch
-```
-
-Or one-shot a folder:
-
-```bash
-php bin/batch.php ~/Pictures/van-shots ~/Pictures/van-shots-enhanced
-```
-
-Processed files get a `.done` sidecar so reruns skip them. Output lands in `output/` unless you pass a second path.
+Jobs can take a few minutes. Keep the Mac awake and the PHP server running.

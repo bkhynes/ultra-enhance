@@ -7,7 +7,7 @@ require $root . '/src/Config.php';
 $config = new Config($root);
 
 $name = basename((string) ($_GET['f'] ?? ''));
-if ($name === '' || !preg_match('/^[a-f0-9]+-(enhanced|orig)\.jpg$/', $name)) {
+if ($name === '' || !preg_match('/^[a-f0-9]+-(enhanced|orig)\.jpg$|^[a-f0-9]+-video\.mp4$/', $name)) {
     http_response_code(400);
     exit('Bad file');
 }
@@ -18,9 +18,11 @@ if (!is_file($path)) {
 }
 
 $download = isset($_GET['dl']);
-header('Content-Type: image/jpeg');
+$isVideo = str_ends_with($name, '.mp4');
+header('Content-Type: ' . ($isVideo ? 'video/mp4' : 'image/jpeg'));
 if ($download) {
     header('Content-Disposition: attachment; filename="' . $name . '"');
 }
 header('Content-Length: ' . filesize($path));
+header('Accept-Ranges: bytes');
 readfile($path);
