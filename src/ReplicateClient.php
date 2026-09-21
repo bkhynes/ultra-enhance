@@ -33,14 +33,14 @@ final class ReplicateClient
         $dataUri = $this->toDataUri($imagePath);
 
         if ($model === 'realesrgan') {
-            $version = 'f121d640bd400d416bfeb162a130f753b0f9c5b184c4d3c29472cb7161b3a5d';
+            $slug = 'nightmareai/real-esrgan';
             $input = [
                 'image' => $dataUri,
                 'scale' => $scale,
                 'face_enhance' => true,
             ];
         } else {
-            $version = 'dfad41775bf40bd70aa79aacb1ea9ea19084dba5d1215a528805f323fa6c94fb';
+            $slug = 'philz1337x/clarity-upscaler';
             $input = [
                 'image' => $dataUri,
                 'scale_factor' => (float) $scale,
@@ -52,10 +52,11 @@ final class ReplicateClient
             ];
         }
 
-        $created = $this->request('POST', self::API, [
-            'version' => $version,
-            'input' => $input,
-        ]);
+        $created = $this->request(
+            'POST',
+            'https://api.replicate.com/v1/models/' . $slug . '/predictions',
+            ['input' => $input]
+        );
         return $this->awaitFile($created, $outputPath, 240);
     }
 
