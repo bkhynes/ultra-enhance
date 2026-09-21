@@ -110,7 +110,7 @@ final class Enhancer
             return;
         }
         imagejpeg($im, $dest, 90);
-        imagedestroy($im);
+        unset($im);
     }
 
     /** @return array{ok:bool,engine:string,file:?string,orig:?string,error:?string,url:?string,orig_url:?string} */
