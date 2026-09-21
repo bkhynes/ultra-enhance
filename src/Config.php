@@ -12,6 +12,7 @@ final class Config
     public readonly string $model;
     public readonly int $maxBytes;
     public readonly string $appToken;
+    public readonly bool $freeMode;
 
     public function __construct(string $root)
     {
@@ -20,7 +21,9 @@ final class Config
 
         $this->uploadDir = $root . '/uploads';
         $this->outputDir = $root . '/output';
-        $this->replicateToken = $this->env('REPLICATE_API_TOKEN') ?: null;
+        $this->freeMode = $this->truthy($this->env('ULTRA_FREE')) || $this->truthy($this->env('FREE_MODE'));
+        $token = $this->env('REPLICATE_API_TOKEN');
+        $this->replicateToken = ($this->freeMode || $token === '') ? null : $token;
         $this->scale = max(2, min(4, (int) ($this->env('UPSCALE_SCALE') ?: 2)));
         $this->model = $this->env('UPSCALE_MODEL') ?: 'clarity';
         $mb = max(1, (int) ($this->env('MAX_UPLOAD_MB') ?: 20));
@@ -37,6 +40,11 @@ final class Config
     public function hasReplicate(): bool
     {
         return is_string($this->replicateToken) && $this->replicateToken !== '';
+    }
+
+    private function truthy(string $v): bool
+    {
+        return in_array(strtolower($v), ['1', 'true', 'yes', 'on'], true);
     }
 
     private function env(string $key): string
@@ -62,6 +70,9 @@ final class Config
             [$k, $v] = explode('=', $line, 2);
             $k = trim($k);
             $v = trim($v, " \t\"'");
+            if ($k === 'ULTRA_FREE' && getenv('ULTRA_FREE')) {
+                continue;
+            }
             $_ENV[$k] = $v;
             putenv("$k=$v");
         }
