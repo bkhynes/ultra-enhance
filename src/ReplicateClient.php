@@ -52,11 +52,11 @@ final class ReplicateClient
             ];
         }
 
-        $created = $this->request(
-            'POST',
-            'https://api.replicate.com/v1/models/' . $slug . '/predictions',
-            ['input' => $input]
-        );
+        $version = $this->latestVersion($slug);
+        $created = $this->request('POST', self::API, [
+            'version' => $version,
+            'input' => $input,
+        ]);
         return $this->awaitFile($created, $outputPath, 240);
     }
 
@@ -140,6 +140,16 @@ final class ReplicateClient
     {
         $mime = mime_content_type($path) ?: 'image/jpeg';
         return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+    }
+
+    private function latestVersion(string $slug): string
+    {
+        $model = $this->request('GET', 'https://api.replicate.com/v1/models/' . $slug);
+        $id = $model['latest_version']['id'] ?? '';
+        if (!is_string($id) || $id === '') {
+            throw new RuntimeException('No latest version for ' . $slug);
+        }
+        return $id;
     }
 
     /** @param array<string,mixed> $created */
