@@ -63,8 +63,7 @@ final class LocalEnhancer
             imagefilter($out, IMG_FILTER_SMOOTH, 1);
         }
         imagejpeg($out, $dest, 92);
-        imagedestroy($im);
-        imagedestroy($out);
+        unset($im, $out);
         return $dest;
     }
 }
