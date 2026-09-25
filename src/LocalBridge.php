@@ -59,7 +59,7 @@ final class LocalBridge
         $im = $data !== false ? @imagecreatefromstring($data) : false;
         if ($im) {
             imagejpeg($im, $preview, 90);
-            imagedestroy($im);
+            unset($im);
         }
 
         return [
