@@ -45,7 +45,7 @@ final class VideoGenerator
         $im = $data !== false ? @imagecreatefromstring($data) : false;
         if ($im) {
             imagejpeg($im, $orig, 90);
-            imagedestroy($im);
+            unset($im);
         } else {
             copy($in, $orig);
         }
